@@ -130,6 +130,32 @@ document.getElementById("clear-all").addEventListener("click", () => {
   withStatus(api("/api/clear", jsonPost({})), "All LEDs off").then(render);
 });
 
+// Download the current LED setup (all colours + brightness) as a JSON file.
+document.getElementById("download-settings").addEventListener("click", async () => {
+  try {
+    const state = await api("/api/state");
+    const config = {
+      brightness: state.brightness,
+      leds: state.leds.map((led) => ({ number: led.number, hex: led.hex })),
+      savedAt: new Date().toISOString(),
+    };
+    const blob = new Blob([JSON.stringify(config, null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "led-settings.json";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+    setStatus("Settings downloaded");
+  } catch (err) {
+    setStatus(err.message, true);
+  }
+});
+
 // Update the label live while dragging; send to the server when released.
 brightnessInput.addEventListener("input", () => {
   brightnessValue.textContent = `${brightnessInput.value}%`;
