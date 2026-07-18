@@ -19,20 +19,47 @@ can script the lights too.
 
 ---
 
+## What you need
+
+- Raspberry Pi 3B (any Pi with a 40-pin header works)
+- Pimoroni **Blinkt!** board (8 RGB LEDs)
+- A **microSD card** (8 GB or larger) + a way to plug it into your computer
+- 5 V power supply for the Pi, and your home Wi-Fi (or Ethernet)
+
 ## 1. Wire up the hardware
 
-Push the **Blinkt!** board onto the Raspberry Pi's 40-pin GPIO header (it
-covers pins 1–16, with the LEDs facing up and away from the USB ports). No
-soldering needed.
+With the Pi **powered off**, push the **Blinkt!** board onto the Raspberry Pi's
+40-pin GPIO header (it covers pins 1–16, with the LEDs facing up and away from
+the USB ports). No soldering needed.
 
-## 2. Enable SPI (recommended)
+## 2. Prepare the SD card (flash Raspberry Pi OS)
 
-Blinkt! uses two GPIO pins by default and works without any config, but
-enabling SPI is harmless and recommended:
+The Raspberry Pi boots and runs everything from its microSD card, so first put
+the operating system on the card:
 
-```bash
-sudo raspi-config    # Interface Options → SPI → Enable
-```
+1. On your computer, install the **Raspberry Pi Imager**:
+   <https://www.raspberrypi.com/software/>
+2. Insert the microSD card.
+3. Open Imager and choose:
+   - **Device:** Raspberry Pi 3
+   - **Operating System:** *Raspberry Pi OS (64-bit)* — the "Lite" version is
+     fine (no desktop needed, since we use it over the network)
+   - **Storage:** your microSD card
+4. Click **Next → Edit Settings** and set up, so the Pi is reachable with no
+   monitor/keyboard:
+   - a **hostname** (e.g. `ledpi` → you'll reach it at `ledpi.local`)
+   - a **username and password** (remember these — you'll SSH in with them)
+   - your **Wi-Fi** name and password (and country)
+   - enable **SSH** on the *Services* tab
+5. Click **Save → Write** and wait for it to finish.
+6. Put the card into the Pi and power it on. Give it a minute to boot and join
+   Wi-Fi.
+7. Connect to it from your computer's terminal (use the username/hostname you
+   set):
+   ```bash
+   ssh <username>@<hostname>.local     # e.g. ssh newton@ledpi.local
+   ```
+   Everything from here on runs on the Pi in that SSH session.
 
 ## 3. Download the code
 
@@ -76,51 +103,59 @@ cd led-controller-main
 > `scp led-controller-main.zip pi@<your-pi-ip>:~/` (replace `pi` with your
 > username), then unzip it there.
 
-## 4. Install
+## 4. Install & run — one command
 
-From inside the project folder on the Raspberry Pi:
+From inside the project folder on the Pi, run the installer:
+
+```bash
+bash install.sh
+```
+
+That's it. The script installs the dependencies, enables SPI, and sets the
+controller up as a service so it **starts automatically every time the Pi boots**
+(and restarts itself if it ever crashes). When it finishes it prints the exact
+address to open, for example:
+
+```
+Open in a browser:  http://192.168.1.42:5000
+```
+
+Open that address from your phone, tablet, or laptop on the same network and
+start changing the LEDs. The page header shows **"hardware connected"** when
+it's driving the real Blinkt!.
+
+Handy commands afterwards:
+
+```bash
+systemctl status led-controller      # is it running?
+journalctl -u led-controller -f      # live logs
+sudo systemctl restart led-controller
+sudo systemctl disable --now led-controller   # stop it starting on boot
+```
+
+To update later: download the newest code (or `git pull`) and run
+`bash install.sh` again.
+
+## 5. Manual install (alternative)
+
+If you'd rather not use the script, do it by hand from the project folder:
 
 ```bash
 python3 -m venv .venv --system-site-packages
 source .venv/bin/activate
 pip install -r requirements.txt
+python3 app.py
 ```
+
+Then open `http://<your-pi-ip>:5000` (find the IP with `hostname -I`). This runs
+in the foreground and stops when you close the session — to make it start on
+boot, use `install.sh` or install the included `led-controller.service` manually.
 
 > `--system-site-packages` lets the virtual environment see the system
 > `RPi.GPIO`, which the Blinkt! library depends on. If `pip install blinkt`
 > has trouble, you can instead use Pimoroni's one-line installer:
-> `curl https://get.pimoroni.com/blinkt | bash`.
-
-## 5. Run
-
-```bash
-python3 app.py
-```
-
-Then, from any device on the same network, open:
-
-```
-http://<your-pi-ip>:5000
-```
-
-Find your Pi's IP with `hostname -I`. Example: `http://192.168.1.42:5000`.
-
-The page header shows **"hardware connected"** when it's driving the real
-Blinkt!, or **"mock (no hardware)"** when running on a machine without it.
-
-## 6. (Optional) Start automatically on boot
-
-A `systemd` unit is included:
-
-```bash
-sudo cp led-controller.service /etc/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl enable --now led-controller
-```
-
-Check status with `systemctl status led-controller` and view logs with
-`journalctl -u led-controller -f`. Edit the paths/user in the file first if
-your project isn't in `/home/pi/led-controller`.
+> `curl https://get.pimoroni.com/blinkt | bash`. SPI can be enabled with
+> `sudo raspi-config` → *Interface Options → SPI → Enable*.
 
 ---
 
@@ -190,8 +225,9 @@ The web UI adapts to whatever `NUM_LEDS` is.
 led-controller/
 ├── app.py                  # Flask server + REST API
 ├── led_backend.py          # LED state + hardware/mock drivers
+├── install.sh              # one-command Pi installer (deps + boot service)
 ├── requirements.txt
-├── led-controller.service  # optional systemd autostart unit
+├── led-controller.service  # systemd autostart unit (template)
 ├── templates/
 │   └── index.html          # web interface
 └── static/
