@@ -34,14 +34,53 @@ enabling SPI is harmless and recommended:
 sudo raspi-config    # Interface Options → SPI → Enable
 ```
 
-## 3. Install
+## 3. Download the code
 
-On the Raspberry Pi:
+Get the project onto your Raspberry Pi using whichever method you prefer.
+
+**Option A — `git clone` (recommended, easy to update later).** Run this on the
+Pi (open a terminal, or SSH in):
 
 ```bash
 git clone https://github.com/newtonnowatzke-tech/led-controller.git
 cd led-controller
+```
 
+Later, pull the newest version any time with `git pull`.
+
+> If `git` isn't installed: `sudo apt update && sudo apt install -y git`.
+
+**Option B — download a ZIP (no git needed).**
+
+1. Open the repo in a browser:
+   <https://github.com/newtonnowatzke-tech/led-controller>
+2. Click the green **`< > Code`** button → **Download ZIP**.
+3. Unzip it. On the Pi you can do this from a terminal:
+   ```bash
+   cd ~/Downloads
+   unzip led-controller-main.zip
+   cd led-controller-main
+   ```
+   (On the Pi's desktop you can also just right-click the ZIP → *Extract Here*.)
+
+**Option C — download directly on the Pi from the command line:**
+
+```bash
+cd ~
+curl -L https://github.com/newtonnowatzke-tech/led-controller/archive/refs/heads/main.tar.gz -o led-controller.tar.gz
+tar -xzf led-controller.tar.gz
+cd led-controller-main
+```
+
+> Downloaded the ZIP on another computer? Copy it to the Pi with
+> `scp led-controller-main.zip pi@<your-pi-ip>:~/` (replace `pi` with your
+> username), then unzip it there.
+
+## 4. Install
+
+From inside the project folder on the Raspberry Pi:
+
+```bash
 python3 -m venv .venv --system-site-packages
 source .venv/bin/activate
 pip install -r requirements.txt
@@ -52,7 +91,7 @@ pip install -r requirements.txt
 > has trouble, you can instead use Pimoroni's one-line installer:
 > `curl https://get.pimoroni.com/blinkt | bash`.
 
-## 4. Run
+## 5. Run
 
 ```bash
 python3 app.py
@@ -69,7 +108,7 @@ Find your Pi's IP with `hostname -I`. Example: `http://192.168.1.42:5000`.
 The page header shows **"hardware connected"** when it's driving the real
 Blinkt!, or **"mock (no hardware)"** when running on a machine without it.
 
-## 5. (Optional) Start automatically on boot
+## 6. (Optional) Start automatically on boot
 
 A `systemd` unit is included:
 
