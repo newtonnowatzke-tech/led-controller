@@ -1,0 +1,6 @@
+Flask>=2.3.0
+
+# Blinkt! hardware driver. The environment marker means pip only installs it on
+# the Raspberry Pi (ARM). On any other machine the app automatically falls back
+# to a mock backend, so you can develop and test the interface anywhere.
+blinkt>=0.1.2 ; platform_machine == "armv6l" or platform_machine == "armv7l" or platform_machine == "aarch64"

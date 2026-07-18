@@ -1,0 +1,27 @@
+# systemd service so the LED controller starts automatically on boot.
+#
+# Install (adjust the paths/username if your project lives elsewhere):
+#
+#   sudo cp led-controller.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now led-controller
+#
+# Check it:  systemctl status led-controller
+# Logs:      journalctl -u led-controller -f
+
+[Unit]
+Description=Pimoroni Blinkt! LED web controller
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/led-controller
+ExecStart=/home/pi/led-controller/.venv/bin/python /home/pi/led-controller/app.py
+Restart=on-failure
+RestartSec=3
+Environment=PORT=5000
+
+[Install]
+WantedBy=multi-user.target

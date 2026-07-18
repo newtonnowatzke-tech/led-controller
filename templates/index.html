@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Blinkt! LED Controller</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+  <main class="app">
+    <header class="header">
+      <h1>LED Controller</h1>
+      <p class="subtitle">
+        Pimoroni Blinkt! · <span id="backend-label">…</span>
+      </p>
+    </header>
+
+    <!-- Global controls -->
+    <section class="panel">
+      <h2>All LEDs</h2>
+      <div class="row">
+        <label class="color-field">
+          <span>Colour</span>
+          <input type="color" id="all-color" value="#ff0000" />
+        </label>
+        <button id="apply-all" class="btn primary">Apply to all</button>
+        <button id="clear-all" class="btn">All off</button>
+      </div>
+
+      <div class="presets" id="presets"></div>
+
+      <div class="row brightness-row">
+        <label for="brightness">Brightness</label>
+        <input type="range" id="brightness" min="0" max="100" value="30" />
+        <output id="brightness-value">30%</output>
+      </div>
+    </section>
+
+    <!-- Individual LEDs -->
+    <section class="panel">
+      <h2>Individual LEDs (1–{{ num_leds }})</h2>
+      <div class="led-grid" id="led-grid">
+        <!-- LED cards injected by app.js -->
+      </div>
+    </section>
+
+    <footer class="footer">
+      <span id="status">Ready</span>
+    </footer>
+  </main>
+
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
